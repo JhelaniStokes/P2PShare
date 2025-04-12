@@ -8,9 +8,10 @@ import (
 )
 
 type ChunkMetaData struct {
-	Index int64
-	Size  int64
-	Hash  string
+	Index  int64
+	Size   int64
+	Hash   string
+	Offset int64
 }
 type FileMetaData struct {
 	Name       string
@@ -47,6 +48,7 @@ func ChunkFile(path string) (*FileMetaData, error) {
 	var chunks []ChunkMetaData
 	buf := make([]byte, SizeChunk(stat.Size()))
 	index := int64(0)
+	offset := int64(0)
 
 	for {
 		n, err := file.Read(buf)
@@ -63,6 +65,7 @@ func ChunkFile(path string) (*FileMetaData, error) {
 			Hash:  hex.EncodeToString(h[:]),
 			Size:  int64(n),
 		})
+		offset += int64(n)
 		index++
 	}
 	return &FileMetaData{
