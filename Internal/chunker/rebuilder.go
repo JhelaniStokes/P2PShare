@@ -9,6 +9,9 @@ import (
 )
 
 func Rebuild(meta *FileMetaData, sourcePath string, outputPath string) error {
+	if meta == nil {
+		return errors.New("FileMeta is nil")
+	}
 	file, err := os.Open(sourcePath)
 	if err != nil {
 		return err

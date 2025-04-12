@@ -61,9 +61,10 @@ func ChunkFile(path string) (*FileMetaData, error) {
 
 		h := sha256.Sum256(buf[:n])
 		chunks = append(chunks, ChunkMetaData{
-			Index: index,
-			Hash:  hex.EncodeToString(h[:]),
-			Size:  int64(n),
+			Index:  index,
+			Hash:   hex.EncodeToString(h[:]),
+			Size:   int64(n),
+			Offset: offset,
 		})
 		offset += int64(n)
 		index++
