@@ -19,6 +19,8 @@ func StartServer(port int) error {
 	if err != nil {
 		return err
 	}
+	s := fmt.Sprint("running on: ", listener.Addr())
+	fmt.Println(s)
 	conn, err := listener.Accept(context.Background())
 	if err != nil {
 		return err
@@ -31,8 +33,7 @@ func StartServer(port int) error {
 	if err != nil {
 		return err
 	}
-	s := fmt.Sprint("running on: ", listener.Addr())
-	fmt.Println(s)
+
 	return nil
 }
 
