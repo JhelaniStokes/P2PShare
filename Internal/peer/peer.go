@@ -15,7 +15,7 @@ func StartServer(port int) error {
 		InsecureSkipVerify: true,
 		NextProtos:         []string{"quic-p2p"},
 	}
-	listener, err := quic.ListenAddr("localhost:"+strconv.Itoa(port), tlsConfig, nil)
+	listener, err := quic.ListenAddr("0.0.0.0:"+strconv.Itoa(port), tlsConfig, nil)
 	if err != nil {
 		return err
 	}
@@ -31,10 +31,12 @@ func StartServer(port int) error {
 	if err != nil {
 		return err
 	}
+	s := fmt.Sprint("running on: ", listener.Addr())
+	fmt.Println(s)
 	return nil
 }
 
-func Connect(addr string) error {
+func Connect(addr string, command string) error {
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
 		NextProtos:         []string{"quic-p2p"},
@@ -44,6 +46,16 @@ func Connect(addr string) error {
 		return err
 	}
 	stream, err := conn.OpenStreamSync(context.Background())
+	if err != nil {
+		return err
+	}
+
+	_, err = stream.Write([]byte(command + "\n"))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func HandleStream(stream quic.Stream) error {
