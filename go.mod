@@ -8,11 +8,9 @@ require (
 )
 
 require (
-	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/pprof v0.0.0-20250208200701-d0013a598941 // indirect
 	github.com/onsi/ginkgo/v2 v2.22.2 // indirect
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
 	go.uber.org/mock v0.5.0 // indirect
 	golang.org/x/crypto v0.35.0 // indirect
