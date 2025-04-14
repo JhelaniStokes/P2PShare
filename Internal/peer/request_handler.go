@@ -43,28 +43,6 @@ func StartServer(port int) error {
 	return nil
 }
 
-func Connect(addr string, command string) error {
-	tlsConfig := &tls.Config{
-		InsecureSkipVerify: true,
-		NextProtos:         []string{"quic-p2p"},
-	}
-	conn, err := quic.DialAddr(context.Background(), addr, tlsConfig, nil)
-	if err != nil {
-		return err
-	}
-	stream, err := conn.OpenStreamSync(context.Background())
-	if err != nil {
-		return err
-	}
-
-	_, err = stream.Write([]byte(command + "\n"))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func HandleStream(stream quic.Stream) error {
 	reader := bufio.NewReader(stream)
 	line, err := reader.ReadString('\n')
