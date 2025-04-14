@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/quic-go/quic-go"
+	"net"
 	"strconv"
 	"strings"
 )
@@ -19,8 +20,13 @@ func StartServer(port int) error {
 	if err != nil {
 		return err
 	}
-	s := fmt.Sprint("running on: ", listener.Addr())
-	fmt.Println(s)
+
+	fmt.Println("Listening on: ")
+	err = PrintAddr(port)
+	if err != nil {
+		return err
+	}
+
 	conn, err := listener.Accept(context.Background())
 	if err != nil {
 		return err
@@ -68,5 +74,31 @@ func HandleStream(stream quic.Stream) error {
 	cmd := strings.TrimSpace(line)
 
 	fmt.Println(cmd)
+	return nil
+}
+
+func PrintAddr(port int) error {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return err
+	}
+
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagUp == 0 {
+			continue
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return err
+		}
+
+		for _, addr := range addrs {
+			ipnet, ok := addr.(*net.IPNet)
+			if ok && ipnet.IP.To4() != nil {
+				fmt.Printf("  - %s:%d\n", ipnet.IP.String(), port)
+			}
+		}
+	}
+
 	return nil
 }
