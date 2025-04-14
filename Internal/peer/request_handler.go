@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func StartServer(port int) error {
+func StartServer(port int, ready chan<- struct{}) error {
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
 		NextProtos:         []string{"quic-p2p"},
@@ -27,20 +27,32 @@ func StartServer(port int) error {
 		return err
 	}
 
-	conn, err := listener.Accept(context.Background())
-	if err != nil {
-		return err
-	}
-	stream, err := conn.AcceptStream(context.Background())
-	if err != nil {
-		return err
-	}
-	err = HandleStream(stream)
-	if err != nil {
-		return err
+	close(ready)
+	for {
+		conn, err := listener.Accept(context.Background())
+		if err != nil {
+			return err
+		}
+
+		go HandleConnection(conn)
 	}
 
-	return nil
+}
+
+func HandleConnection(conn quic.Connection) {
+	fmt.Println("Connection established: " + conn.RemoteAddr().String())
+	for {
+		stream, err := conn.AcceptStream(context.Background())
+		if err != nil {
+			fmt.Println(err)
+		}
+		go func(s quic.Stream) {
+			err := HandleStream(s)
+			if err != nil {
+				fmt.Println("streamhandler error: ", err)
+			}
+		}(stream)
+	}
 }
 
 func HandleStream(stream quic.Stream) error {
