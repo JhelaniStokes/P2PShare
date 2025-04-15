@@ -1,9 +1,11 @@
 package peer
 
 import (
+	"P2PShare/Internal/p2ptls"
 	"bufio"
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"github.com/quic-go/quic-go"
 	"net"
@@ -12,10 +14,14 @@ import (
 )
 
 func StartServer(port int, ready chan<- struct{}) error {
+	cert, err := p2ptls.GenerateSelfCert()
+	if err != nil {
+		return err
+	}
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
 		NextProtos:         []string{"quic-p2p"},
-		ServerName:         "dummy",
+		Certificates:       []tls.Certificate{cert},
 	}
 	listener, err := quic.ListenAddr("0.0.0.0:"+strconv.Itoa(port), tlsConfig, nil)
 	if err != nil {
@@ -40,23 +46,28 @@ func StartServer(port int, ready chan<- struct{}) error {
 
 }
 
-func HandleConnection(conn quic.Connection) {
+func HandleConnection(conn quic.Connection) error {
 	fmt.Println("Connection established: " + conn.RemoteAddr().String())
 	for {
 		stream, err := conn.AcceptStream(context.Background())
 		if err != nil {
 			fmt.Println(err)
+			return err
 		}
 		go func(s quic.Stream) {
 			err := HandleStream(s)
 			if err != nil {
 				fmt.Println("streamhandler error: ", err)
+
 			}
 		}(stream)
 	}
 }
 
 func HandleStream(stream quic.Stream) error {
+	if stream == nil {
+		return errors.New("stream is nil")
+	}
 	reader := bufio.NewReader(stream)
 	line, err := reader.ReadString('\n')
 	if err != nil {
