@@ -15,6 +15,7 @@ func StartServer(port int, ready chan<- struct{}) error {
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
 		NextProtos:         []string{"quic-p2p"},
+		ServerName:         "dummy",
 	}
 	listener, err := quic.ListenAddr("0.0.0.0:"+strconv.Itoa(port), tlsConfig, nil)
 	if err != nil {

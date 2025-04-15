@@ -22,6 +22,7 @@ func Connect(addr string) (quic.Connection, error) {
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
 		NextProtos:         []string{"quic-p2p"},
+		ServerName:         "dummy",
 	}
 	conn, err := quic.DialAddr(context.Background(), addr, tlsConfig, nil)
 	if err != nil {
