@@ -5,6 +5,20 @@ import (
 	"os"
 )
 
+type ChunkMetaData struct {
+	Index  int64
+	Size   int64
+	Hash   string
+	Offset int64
+}
+type FileMetaData struct {
+	Name       string
+	Size       int64
+	ChunkSize  int64
+	ChunkCount int64
+	Chunks     []ChunkMetaData
+}
+
 func SaveMetaData(fileMeta *FileMetaData, outPath string) error {
 	file, err := os.Create(outPath)
 	if err != nil {

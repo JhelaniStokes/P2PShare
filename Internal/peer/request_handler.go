@@ -48,6 +48,7 @@ func StartServer(port int, ready chan<- struct{}) error {
 
 func HandleConnection(conn quic.Connection) error {
 	fmt.Println("Connection established: " + conn.RemoteAddr().String())
+	fmt.Print("> ")
 	for {
 		stream, err := conn.AcceptStream(context.Background())
 		if err != nil {
@@ -58,7 +59,7 @@ func HandleConnection(conn quic.Connection) error {
 			err := HandleStream(s)
 			if err != nil {
 				fmt.Println("streamhandler error: ", err)
-
+				fmt.Print("> ")
 			}
 		}(stream)
 	}
@@ -75,8 +76,12 @@ func HandleStream(stream quic.Stream) error {
 	}
 	cmd := strings.TrimSpace(line)
 
-	fmt.Println(cmd)
+	HandleCommand(cmd, stream)
 	return nil
+}
+
+func HandleCommand(cmd string, stream quic.Stream) {
+
 }
 
 func PrintAddr(port int) error {

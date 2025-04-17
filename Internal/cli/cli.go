@@ -59,6 +59,7 @@ func StartCli() {
 
 				if err != nil {
 					fmt.Println(err)
+
 					continue
 				}
 				reader := bufio.NewReader(stream)
