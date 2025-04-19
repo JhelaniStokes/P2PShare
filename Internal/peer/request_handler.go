@@ -1,12 +1,15 @@
 package peer
 
 import (
+	"P2PShare/Internal/chunker"
 	"P2PShare/Internal/p2ptls"
 	"bufio"
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/google/shlex"
 	"github.com/quic-go/quic-go"
 	"net"
 	"strconv"
@@ -76,12 +79,67 @@ func HandleStream(stream quic.Stream) error {
 	}
 	cmd := strings.TrimSpace(line)
 
-	HandleCommand(cmd, stream)
+	err = HandleCommand(cmd, stream)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func HandleCommand(cmd string, stream quic.Stream) {
+func HandleCommand(cmd string, stream quic.Stream) error {
+	args, err := shlex.Split(cmd)
+	if err != nil {
+		return err
+	}
 
+	switch args[0] {
+	case "echo":
+		if len(args) < 2 {
+			_, err := stream.Write([]byte("must have at least 2 arguments\n"))
+			if err != nil {
+				return err
+			}
+		} else {
+			_, err = fmt.Fprintf(stream, "%s\n", strings.Join(args[1:], " "))
+			if err != nil {
+				return err
+			}
+		}
+	case "meta":
+		if len(args) < 2 {
+			_, err := stream.Write([]byte("must have at least 2 arguments\n"))
+			if err != nil {
+				return err
+			}
+		}
+
+		meta, err := chunker.LoadMetaData(args[1])
+		var notFound chunker.DataNotFound
+		if err != nil {
+			if errors.As(err, &notFound) {
+				fmt.Fprintln(stream, notFound)
+			} else {
+				return err
+			}
+		}
+
+		res := Message[chunker.FileMetaData]{
+			Type:   "RES",
+			Status: 200,
+			Body:   *meta,
+		}
+		err = json.NewEncoder(stream).Encode(res)
+		if err != nil {
+			return err
+		}
+	default:
+		_, err := stream.Write([]byte("error: unknown command\n"))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func PrintAddr(port int) error {
